@@ -1,0 +1,21 @@
+# Secrets
+.streamlit/
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual env
+.venv/
+venv/
+
+# OS / Editor
+.DS_Store
+.vscode/
+
+# Data & embeddings
+data/processed/
+data/embeddings/
+*.pkl
+*.index
