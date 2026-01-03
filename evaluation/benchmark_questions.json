@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "question": "What caused the slowdown in economic growth?",
+    "expected_modality": "text"
+  },
+  {
+    "id": 2,
+    "question": "What does the fiscal balance table indicate?",
+    "expected_modality": "table"
+  },
+  {
+    "id": 3,
+    "question": "What trend is shown in inflation figures?",
+    "expected_modality": "image_ocr"
+  },
+  {
+    "id": 4,
+    "question": "Which page discusses monetary tightening?",
+    "expected_modality": "text"
+  }
+]

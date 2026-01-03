@@ -1,0 +1,46 @@
+[
+  {
+    "question_id": 1,
+    "question": "What caused the slowdown in economic growth?",
+    "expected_modality": "text",
+    "retrieved_modalities": [
+      "table",
+      "text"
+    ],
+    "latency_sec": 4.46,
+    "has_citation": true
+  },
+  {
+    "question_id": 2,
+    "question": "What does the fiscal balance table indicate?",
+    "expected_modality": "table",
+    "retrieved_modalities": [
+      "table",
+      "image_ocr"
+    ],
+    "latency_sec": 17.64,
+    "has_citation": true
+  },
+  {
+    "question_id": 3,
+    "question": "What trend is shown in inflation figures?",
+    "expected_modality": "image_ocr",
+    "retrieved_modalities": [
+      "table",
+      "text"
+    ],
+    "latency_sec": 16.08,
+    "has_citation": true
+  },
+  {
+    "question_id": 4,
+    "question": "Which page discusses monetary tightening?",
+    "expected_modality": "text",
+    "retrieved_modalities": [
+      "image_ocr",
+      "text"
+    ],
+    "latency_sec": 16.51,
+    "has_citation": true
+  }
+]
