@@ -23,7 +23,12 @@ env/
 .vscode/
 .idea/
 
-
+# =========================
+# FAISS build artifacts (DO NOT COMMIT)
+# =========================
+data/embeddings/
+*.index
+*.pkl
 
 # =========================
 # Logs
