@@ -1,21 +1,36 @@
-# Secrets
-.streamlit/
+# =========================
+# Secrets (NEVER COMMIT)
+# =========================
 .streamlit/secrets.toml
 
-# Python
+# =========================
+# Python cache
+# =========================
 __pycache__/
 *.py[cod]
 
-# Virtual env
+# =========================
+# Virtual environments
+# =========================
 .venv/
 venv/
+env/
 
-# OS / Editor
+# =========================
+# OS / Editors
+# =========================
 .DS_Store
 .vscode/
+.idea/
 
-# Data & embeddings
-data/processed/
-data/embeddings/
-*.pkl
-*.index
+
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# Jupyter
+# =========================
+.ipynb_checkpoints/
