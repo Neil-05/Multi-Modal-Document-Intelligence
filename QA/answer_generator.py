@@ -1,8 +1,16 @@
 from Vector_store.retriever import Retriever
 from groq import Groq
-import os
 
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+import os
+import streamlit as st
+
+api_key = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
+
+if not api_key:
+    raise RuntimeError("GROQ_API_KEY not set")
+
+client = Groq(api_key=api_key)
 
 def build_context(chunks):
     context = ""
