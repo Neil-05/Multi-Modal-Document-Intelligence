@@ -10,25 +10,19 @@ def load_logo_base64(path):
 logo_base64 = load_logo_base64("assets/logo2.png")
 
 
-# -------------------------------------------------
-# FIX IMPORT PATH (for Streamlit)
-# -------------------------------------------------
+
 ROOT_DIR = Path(__file__).resolve().parents[1]
 sys.path.append(str(ROOT_DIR))
 
 from QA.answer_generator import answer_question
 
-# -------------------------------------------------
-# PAGE CONFIG
-# -------------------------------------------------
+
 st.set_page_config(
     page_title="Multi-Modal RAG Chatbot",
     layout="wide"
 )
 
-# -------------------------------------------------
-# CUSTOM STYLES
-# -------------------------------------------------
+#CSS
 st.markdown(
     """
     <style>
@@ -131,17 +125,15 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# -------------------------------------------------
-# HEADER
-# -------------------------------------------------
+#For the title
 st.markdown(
     f"""
     <div style="display:flex; align-items:center; gap:14px; height:70px;">
         <img src="data:image/png;base64,{logo_base64}" class="glow-logo"/>
         <h2 class="glow-title" style="margin:0;">
             Multi-Modal Document QA
-        </h2>
-    </div>
+        </h2></div>
+    
     """,
     unsafe_allow_html=True
 )
@@ -149,9 +141,7 @@ st.markdown(
 
 st.divider()
 
-# -------------------------------------------------
-# CHAT MEMORY
-# -------------------------------------------------
+
 if "messages" not in st.session_state:
     st.session_state.messages = [
         {
@@ -160,9 +150,7 @@ if "messages" not in st.session_state:
         }
     ]
 
-# -------------------------------------------------
-# SIDEBAR (POWER CONTROLS)
-# -------------------------------------------------
+
 with st.sidebar:
 
     st.markdown("## 👤 About")
@@ -237,10 +225,6 @@ with st.sidebar:
         ]
         st.rerun()
 
-
-# -------------------------------------------------
-# DISPLAY CHAT MESSAGES
-# -------------------------------------------------
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
@@ -250,13 +234,14 @@ for msg in st.session_state.messages:
                 for c in msg["citations"]:
                     st.markdown(f"- {c}")
 
-# -------------------------------------------------
-# CHAT INPUT
-# -------------------------------------------------
+
+
+
+
 prompt = st.chat_input("Ask a question about the document...")
 
 if prompt:
-    # ---- USER MESSAGE ----
+    # user message
     st.session_state.messages.append({
         "role": "user",
         "content": prompt
@@ -265,7 +250,7 @@ if prompt:
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # ---- ASSISTANT RESPONSE ----
+   #assistant replying
     with st.chat_message("assistant"):
         with st.spinner("Retrieving context and generating answer..."):
             answer, citations = answer_question(prompt)
