@@ -1,16 +1,20 @@
 from Vector_store.retriever import Retriever
 from groq import Groq
 
-
 import os
 import streamlit as st
 
-api_key = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
 
-if not api_key:
-    raise RuntimeError("GROQ_API_KEY not set")
+def get_client():
+    api_key = os.getenv("GROQ_API_KEY") or st.secrets.get("GROQ_API_KEY").strip()
 
-client = Groq(api_key=api_key)
+    print("Loaded key:", api_key[:10])
+
+    if not api_key:
+        raise RuntimeError("GROQ_API_KEY not set")
+
+    return Groq(api_key=api_key)
+
 
 def build_context(chunks):
     context = ""
@@ -24,6 +28,9 @@ def build_context(chunks):
 
 
 def answer_question(question):
+
+    client = get_client()
+
     retriever = Retriever(
         "data/embeddings/vector.index",
         "data/embeddings/metadata.pkl",
@@ -57,6 +64,7 @@ Answer:
     )
 
     answer = response.choices[0].message.content.strip()
+
     return answer, citations
 
 
