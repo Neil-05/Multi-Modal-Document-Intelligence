@@ -54,8 +54,7 @@ def texts(pdf_path):
             })
 
     return results
-
-def tables(pdf_path):
+def tables(pdf_path):   #Extracting Tables
     results = []
 
     with pdfplumber.open(pdf_path) as pdf:
