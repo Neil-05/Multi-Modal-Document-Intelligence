@@ -9,11 +9,22 @@ st.set_page_config(
     page_title="Multi-Modal RAG Chatbot",
     layout="wide"
 )
+
 def load_logo_base64(path):
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 logo_base64 = load_logo_base64("assets/logo2.png")
 
+
+st.markdown(f"""
+<div class="header-container">
+    <img src="data:image/png;base64,{logo_base64}" class="app-logo">
+    <div>
+        <h1>Multi-Modal Document QA</h1>
+        <p>Ask questions about documents using AI</p>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 
 
@@ -22,131 +33,108 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 sys.path.append(str(ROOT_DIR))
 
 from QA.answer_generator import answer_question
-st.markdown("## 📄 Upload Document")
+st.markdown("""
+<div class="upload-card">
+<h3>📄 Upload Document</h3>
+<p>Upload a PDF to start asking questions</p>
+</div>
+""", unsafe_allow_html=True)
 
 uploaded_file = st.file_uploader(
-    "Upload a PDF document",
-    type=["pdf"]
+    "",
+    type=["pdf"],
+    label_visibility="collapsed"
 )
+if uploaded_file:
+    st.info(f"📄 Uploaded: **{uploaded_file.name}** ({round(uploaded_file.size/1024,1)} KB)")
+
+# Detect new uploaded file
+if uploaded_file is not None:
+    if "current_file" not in st.session_state or st.session_state.current_file != uploaded_file.name:
+        st.session_state.current_file = uploaded_file.name
+        st.session_state.doc_ready = False
 
 
 
 
 #CSS
-st.markdown(
-    """
-    <style>
-    .stApp {
-        background: linear-gradient(135deg, #E48AED, #7b3fe4);
-        color: white;
-    }
+st.markdown("""
+<style>
 
-
-
-   .glow-title {
-    font-size: 34px;
-    font-weight: 700;
-    color: #f3e8ff; /* soft lavender text */
-    text-shadow:
-        0 0 6px rgba(180,120,255,0.6),
-        0 0 14px rgba(140,180,255,0.6),
-        0 0 28px rgba(120,90,255,0.8);
-    animation: glowPulse 3.5s ease-in-out infinite;
+.stApp {
+    background: #0C2C55;
+    font-family: 'Inter', sans-serif;
 }
 
-@keyframes glowPulse {
-    0% {
-        text-shadow:
-            0 0 6px rgba(180,120,255,0.5),
-            0 0 14px rgba(140,180,255,0.5),
-            0 0 26px rgba(120,90,255,0.6);
-    }
-    50% {
-        text-shadow:
-            0 0 12px rgba(200,150,255,0.9),
-            0 0 26px rgba(160,210,255,0.9),
-            0 0 40px rgba(150,120,255,1);
-    }
-    100% {
-        text-shadow:
-            0 0 6px rgba(180,120,255,0.5),
-            0 0 14px rgba(140,180,255,0.5),
-            0 0 26px rgba(120,90,255,0.6);
-    }
+/* Upload Card */
+
+.upload-card{
+    background: rgba(255,255,255,0.08);
+    padding:25px;
+    border-radius:16px;
+    backdrop-filter: blur(15px);
+    margin-bottom:20px;
 }
 
-
-.glow-logo {
-    width: 55px;
-    filter: drop-shadow(0 0 6px rgba(255,255,255,0.6))
-            drop-shadow(0 0 14px rgba(180,120,255,0.7))
-            drop-shadow(0 0 26px rgba(140,80,255,0.8));
-    animation: logoFloatGlow 3s ease-in-out infinite;
+            .header-container{
+    display:flex;
+    align-items:center;
+    gap:15px;
 }
 
-@keyframes logoFloatGlow {
-    0% {
-        transform: translateY(0px) scale(1);
-        filter: drop-shadow(0 0 6px rgba(255,255,255,0.5))
-                drop-shadow(0 0 14px rgba(180,120,255,0.6))
-                drop-shadow(0 0 26px rgba(140,80,255,0.7));
-    }
-    50% {
-        transform: translateY(-4px) scale(1.03);
-        filter: drop-shadow(0 0 10px rgba(255,255,255,0.9))
-                drop-shadow(0 0 22px rgba(200,150,255,0.9))
-                drop-shadow(0 0 36px rgba(170,120,255,1));
-    }
-    100% {
-        transform: translateY(0px) scale(1);
-        filter: drop-shadow(0 0 6px rgba(255,255,255,0.5))
-                drop-shadow(0 0 14px rgba(180,120,255,0.6))
-                drop-shadow(0 0 26px rgba(140,80,255,0.7));
-    }
+.app-logo{
+    width:60px;
+    height:auto;
+}
+/* Chat container */
+
+.stChatMessage{
+    background: rgba(0,0,0,0.25);
+    border-radius:14px;
+    padding:14px;
+    margin-bottom:12px;
+    border:1px solid rgba(255,255,255,0.08);
 }
 
+/* User bubble */
 
-
-
-    label, p, h1, h2, h3, h4, h5, h6 {
-        color: white !important;
-    }
-
-    .stChatMessage {
-        background-color: rgba(0,0,0,0.25);
-        border-radius: 12px;
-        padding: 10px;
-        margin-bottom: 10px;
-    }
-    .stChatMessage[data-testid="stChatMessage-user"] {
-    background-color: #1f1f2e;
+.stChatMessage[data-testid="stChatMessage-user"]{
+    background: linear-gradient(135deg,#2b2b3a,#1e1e2a);
+    border-left:4px solid #7c5cff;
 }
 
-.stChatMessage[data-testid="stChatMessage-assistant"] {
-    background-color: rgba(0,0,0,0.35);
+/* Assistant bubble */
+
+.stChatMessage[data-testid="stChatMessage-assistant"]{
+    background: rgba(255,255,255,0.08);
+    border-left:4px solid #ffb347;
 }
 
+/* Chat input */
 
-    .stSpinner > div {
-        color: white;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+.stChatInput{
+    border-radius:12px;
+}
+
+/* Upload drag area */
+
+[data-testid="stFileUploader"]{
+    background: rgba(255,255,255,0.08);
+    border-radius:16px;
+    padding:20px;
+}
+
+/* Success message */
+
+[data-testid="stSuccess"]{
+    background: rgba(0,255,150,0.15);
+    border-radius:10px;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 #For the title
-st.markdown(
-    f"""
-    <div style="display:flex; align-items:center; gap:14px; height:70px;">
-        <img src="data:image/png;base64,{logo_base64}" class="glow-logo"/>
-        <h2 class="glow-title" style="margin:0;">
-            Multi-Modal Document QA
-        </h2></div>
-    
-    """,
-    unsafe_allow_html=True
-)
 
 
 st.divider()
@@ -238,7 +226,7 @@ with st.sidebar:
 
 from pathlib import Path
 
-if uploaded_file is not None and "doc_ready" not in st.session_state:
+if uploaded_file is not None and not st.session_state.get("doc_ready", False):
 
     upload_dir = Path("data/raw_docs")
     upload_dir.mkdir(parents=True, exist_ok=True)
@@ -254,33 +242,43 @@ if uploaded_file is not None and "doc_ready" not in st.session_state:
 
 if "doc_path" in st.session_state and not st.session_state.doc_ready:
 
-    with st.spinner("Processing document..."):
+    progress_bar = st.progress(0)
+    status_text = st.empty()
+    with st.spinner("Extracting document content..."):
 
-        from Ingestion.text_parse import extract_text
-        from Ingestion.image_ocr import extract_images_and_ocr
-        from Ingestion.table_parse import extract_tables
-        from Ingestion.chunk_content import chunk_content
+        from Ingestion.text_parse import texts as extract_text
+        from Ingestion.text_parse import images as extract_images_and_ocr
+        from Ingestion.text_parse import tables as extract_tables
+        from Chunking.chunker import chunk_content
         from Vector_store.build_index import build_embeddings
 
         import json
 
         pdf_path = st.session_state.doc_path
 
+        # Ensure folders exist
+        Path("data/processed").mkdir(parents=True, exist_ok=True)
+        Path("data/embeddings").mkdir(parents=True, exist_ok=True)
+        status_text.markdown("🔍 **Step 1/4: Extracting text, images, tables... (20%)**")
+        progress_bar.progress(20)
         # Extract modalities
-        extract_text(pdf_path, "data/processed/text.json")
-        extract_images_and_ocr(pdf_path, "data/processed/images.json")
-        extract_tables(pdf_path, "data/processed/tables.json")
+        text_data = extract_text(pdf_path)
+        image_data = extract_images_and_ocr(pdf_path)
+        table_data = extract_tables(pdf_path)
+        status_text.markdown("🔍 **Step 2/4: Processing extracted data... (50%)**")
+        progress_bar.progress(50)
+
+        # Save extracted JSON
+        with open("data/processed/text.json", "w") as f:
+            json.dump(text_data, f, indent=2)
+
+        with open("data/processed/images.json", "w") as f:
+            json.dump(image_data, f, indent=2)
+
+        with open("data/processed/tables.json", "w") as f:
+            json.dump(table_data, f, indent=2)
 
         # Merge JSON files
-        with open("data/processed/text.json") as f:
-            text_data = json.load(f)
-
-        with open("data/processed/images.json") as f:
-            image_data = json.load(f)
-
-        with open("data/processed/tables.json") as f:
-            table_data = json.load(f)
-
         all_data = text_data + image_data + table_data
 
         with open("data/processed/all_data.json", "w") as f:
@@ -291,16 +289,22 @@ if "doc_path" in st.session_state and not st.session_state.doc_ready:
             "data/processed/all_data.json",
             "data/processed/chunks.json"
         )
+        status_text.markdown("✂️ **Step 3/4: Chunking document... (80%)**")
+        progress_bar.progress(80)
 
-        # Embeddings
+        # Build embeddings
         build_embeddings(
-            "data/processed/chunks.json",
-            "data/embeddings/vector.index",
-            "data/embeddings/metadata.pkl"
+             Path("data/processed/chunks.json"),
+             Path("data/embeddings/vector.index"),
+            Path("data/embeddings/metadata.pkl")
         )
+        status_text.markdown("🧠 **Step 4/4: Building embeddings... (100%)**")
+        progress_bar.progress(100)
 
     st.session_state.doc_ready = True
     st.success("Document processed. You can now ask questions!")
+
+
 
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
@@ -316,6 +320,19 @@ for msg in st.session_state.messages:
 
 
 prompt = st.chat_input("Ask a question about the document...")
+
+st.markdown("### 💡 Example questions")
+
+col1,col2,col3 = st.columns(3)
+
+if col1.button("📑 Summarize document"):
+    st.session_state.example="Summarize the document"
+
+if col2.button("📊 Extract key insights"):
+    st.session_state.example="What are the key insights?"
+
+if col3.button("📌 Important facts"):
+    st.session_state.example="List important facts"
 
 if prompt:
     # user message
