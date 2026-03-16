@@ -4,6 +4,11 @@ from pathlib import Path
 
 import base64
 
+
+st.set_page_config(
+    page_title="Multi-Modal RAG Chatbot",
+    layout="wide"
+)
 def load_logo_base64(path):
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
@@ -11,16 +16,21 @@ logo_base64 = load_logo_base64("assets/logo2.png")
 
 
 
+
+
 ROOT_DIR = Path(__file__).resolve().parents[1]
 sys.path.append(str(ROOT_DIR))
 
 from QA.answer_generator import answer_question
+st.markdown("## 📄 Upload Document")
 
-
-st.set_page_config(
-    page_title="Multi-Modal RAG Chatbot",
-    layout="wide"
+uploaded_file = st.file_uploader(
+    "Upload a PDF document",
+    type=["pdf"]
 )
+
+
+
 
 #CSS
 st.markdown(
@@ -224,6 +234,73 @@ with st.sidebar:
             }
         ]
         st.rerun()
+
+
+from pathlib import Path
+
+if uploaded_file is not None and "doc_ready" not in st.session_state:
+
+    upload_dir = Path("data/raw_docs")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+
+    file_path = upload_dir / uploaded_file.name
+
+    with open(file_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+
+    st.session_state.doc_path = str(file_path)
+    st.session_state.doc_ready = False
+
+
+if "doc_path" in st.session_state and not st.session_state.doc_ready:
+
+    with st.spinner("Processing document..."):
+
+        from Ingestion.text_parse import extract_text
+        from Ingestion.image_ocr import extract_images_and_ocr
+        from Ingestion.table_parse import extract_tables
+        from Ingestion.chunk_content import chunk_content
+        from Vector_store.build_index import build_embeddings
+
+        import json
+
+        pdf_path = st.session_state.doc_path
+
+        # Extract modalities
+        extract_text(pdf_path, "data/processed/text.json")
+        extract_images_and_ocr(pdf_path, "data/processed/images.json")
+        extract_tables(pdf_path, "data/processed/tables.json")
+
+        # Merge JSON files
+        with open("data/processed/text.json") as f:
+            text_data = json.load(f)
+
+        with open("data/processed/images.json") as f:
+            image_data = json.load(f)
+
+        with open("data/processed/tables.json") as f:
+            table_data = json.load(f)
+
+        all_data = text_data + image_data + table_data
+
+        with open("data/processed/all_data.json", "w") as f:
+            json.dump(all_data, f, indent=2)
+
+        # Chunk
+        chunk_content(
+            "data/processed/all_data.json",
+            "data/processed/chunks.json"
+        )
+
+        # Embeddings
+        build_embeddings(
+            "data/processed/chunks.json",
+            "data/embeddings/vector.index",
+            "data/embeddings/metadata.pkl"
+        )
+
+    st.session_state.doc_ready = True
+    st.success("Document processed. You can now ask questions!")
 
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
