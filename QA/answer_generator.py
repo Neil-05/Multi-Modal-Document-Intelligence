@@ -6,13 +6,21 @@ import streamlit as st
 
 
 def get_client():
-    api_key = os.getenv("GROQ_API_KEY") or st.secrets.get("GROQ_API_KEY").strip()
+    api_key = os.getenv("GROQ_API_KEY")
+    
+    if not api_key:
+        try:
+            api_key = st.secrets.get("GROQ_API_KEY")
+        except Exception:
+            api_key = None
 
-    print("Loaded key:", api_key[:10])
+    if api_key:
+        api_key = api_key.strip()
 
     if not api_key:
-        raise RuntimeError("GROQ_API_KEY not set")
+        raise RuntimeError("GROQ_API_KEY not set in environment or Streamlit secrets")
 
+    print("Loaded key:", api_key[:10])
     return Groq(api_key=api_key)
 
 
